@@ -22,12 +22,12 @@ var cMap = make(commandMap)
 func main() {
 	fmt.Println("Starting GoForth")
 
-	if e := initializeCommandMap(commandInitializationMap{"rickTest": "predefined1 321 predefined2"}); e != nil {
+	if e := initializeCommandMap(commandInitializationMap{"rickTest": "predefined1 321 pop predefined2"}); e != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", e)
 		os.Exit(1)
 	}
 
-	testString := "predefined1 123 predefined2 rickTest"
+	testString := "predefined1 123 predefined2 rickTest 123456 654321 add"
 
 	if tList, e := tokenizeString(testString); e != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", e)
@@ -38,6 +38,9 @@ func main() {
 			os.Exit(3)
 		}
 	}
+
+	fmt.Println("Finished GoForth")
+	fmt.Printf("Number stack looks like this: %v\n", nStack)
 }
 
 func tokenizeString(toTokenize string) (tokenList, error) {
@@ -58,17 +61,34 @@ func tokenizeString(toTokenize string) (tokenList, error) {
 func executeToken(token token) error {
 	switch v := token.(type) {
 	case numericToken:
-		nStack = append(nStack, v)
+		//		nStack = append(nStack, v)
+		nStack = append(numberStack{v}, nStack...)
+		fmt.Printf("Pushed %d, Number stack looks like this: %v\n\n", v, nStack)
 	case commandToken:
+		fmt.Printf("Running command: %v\n", v)
 		switch v {
 		case "predefined1":
-			fmt.Println("predifined1 command run")
+			break
 		case "predefined2":
-			fmt.Println("predifined2 command run")
+			break
+		case "add":
+			var x numericToken
+			var x2 numericToken
+			x, nStack = nStack[0], nStack[1:]
+			x2, nStack = nStack[0], nStack[1:]
+			nStack = append(numberStack{x + x2}, nStack...)
+			fmt.Printf("Added %d and %d to get %d\n", x, x2, x+x2)
+		case "pop":
+			var x numericToken
+			x, nStack = nStack[0], nStack[1:]
+			fmt.Printf("Popped %d off top of stack\n", x)
 		default:
 			tList := cMap[v]
 			return executeTokenList(tList)
 		}
+
+		fmt.Printf("After command, number stack looks like this: %v\n\n", nStack)
+
 	default:
 		return errors.New("goforth: unknown token type")
 	}
