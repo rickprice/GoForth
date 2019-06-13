@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 )
 
 type numericToken uint64
@@ -12,32 +14,46 @@ type token interface{}
 type tokenList []token
 type numberStack []numericToken
 type commandMap map[commandToken]tokenList
+type commandInitializationMap map[string]string
 
 var nStack numberStack
-var cMap commandMap
+var cMap = make(commandMap)
 
 func main() {
 	fmt.Println("Starting GoForth")
 
-	if tList, e := tokenizeString("predefined1 123 predefined2"); e != nil {
+	if e := initializeCommandMap(commandInitializationMap{"rickTest": "predefined1 321 predefined2"}); e != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", e)
 		os.Exit(1)
+	}
+
+	testString := "predefined1 123 predefined2 rickTest"
+
+	if tList, e := tokenizeString(testString); e != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", e)
+		os.Exit(2)
 	} else {
 		if e := executeTokenList(tList); e != nil {
 			fmt.Fprintf(os.Stderr, "error: %v\n", e)
-			os.Exit(1)
+			os.Exit(3)
 		}
 	}
 }
 
-// +++ FIX THIS +++ Doesn't actually tokenize the string yet...
 func tokenizeString(toTokenize string) (tokenList, error) {
 	var retVal tokenList
-	retVal = append(retVal, commandToken("predefined"))
+
+	for _, token := range strings.Fields(toTokenize) {
+
+		if n, e := strconv.ParseUint(token, 10, 64); e != nil {
+			retVal = append(retVal, commandToken(token))
+		} else {
+			retVal = append(retVal, numericToken(n))
+		}
+	}
+
 	return retVal, nil
 }
-
-// +++ FIX THIS +++ Doesn't actually tokenize the string yet...
 
 func executeToken(token token) error {
 	switch v := token.(type) {
@@ -66,5 +82,18 @@ func executeTokenList(tList tokenList) error {
 			return e
 		}
 	}
+	return nil
+}
+
+func initializeCommandMap(cInitMap commandInitializationMap) error {
+	for key, commandList := range cInitMap {
+		tList, e := tokenizeString(commandList)
+		if e != nil {
+			return e
+		}
+
+		cMap[commandToken(key)] = tList
+	}
+
 	return nil
 }
