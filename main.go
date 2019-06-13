@@ -27,7 +27,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	testString := "predefined1 123 predefined2 rickTest 123456 654321 add 2 mul div"
+	testString := "predefined1 123 predefined2 rickTest 123456 654321 add 2 mul div dup"
 
 	if tList, e := tokenizeString(testString); e != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", e)
@@ -99,6 +99,12 @@ func executeToken(token token) error {
 			var x numericToken
 			x, nStack = nStack[0], nStack[1:]
 			fmt.Printf("Popped %d off top of stack\n", x)
+		case "dup":
+			var result numericToken
+			result = nStack[0]
+			nStack = append(numberStack{result}, nStack...)
+
+			fmt.Printf("Duplicated %d to top of stack\n", result)
 		default:
 			tList := cMap[v]
 			return executeTokenList(tList)
