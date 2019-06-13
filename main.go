@@ -27,7 +27,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	testString := "predefined1 123 predefined2 rickTest 123456 654321 add"
+	testString := "predefined1 123 predefined2 rickTest 123456 654321 add 2 mul div"
 
 	if tList, e := tokenizeString(testString); e != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", e)
@@ -76,8 +76,25 @@ func executeToken(token token) error {
 			var x2 numericToken
 			x, nStack = nStack[0], nStack[1:]
 			x2, nStack = nStack[0], nStack[1:]
-			nStack = append(numberStack{x + x2}, nStack...)
-			fmt.Printf("Added %d and %d to get %d\n", x, x2, x+x2)
+			var result = x + x2
+			nStack = append(numberStack{result}, nStack...)
+			fmt.Printf("Added %d and %d to get %d\n", x, x2, result)
+		case "mul":
+			var x numericToken
+			var x2 numericToken
+			x, nStack = nStack[0], nStack[1:]
+			x2, nStack = nStack[0], nStack[1:]
+			var result = x * x2
+			nStack = append(numberStack{result}, nStack...)
+			fmt.Printf("Multiplied %d and %d to get %d\n", x, x2, result)
+		case "div":
+			var x numericToken
+			var x2 numericToken
+			x, nStack = nStack[0], nStack[1:]
+			x2, nStack = nStack[0], nStack[1:]
+			var result = x / x2
+			nStack = append(numberStack{result}, nStack...)
+			fmt.Printf("Divided %d and %d to get %d\n", x, x2, result)
 		case "pop":
 			var x numericToken
 			x, nStack = nStack[0], nStack[1:]
